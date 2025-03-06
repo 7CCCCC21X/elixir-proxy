@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     const { address } = req.query;
     if (!address) {
         return res.status(400).json({ error: "缺少钱包地址参数" });
@@ -16,4 +16,4 @@ export default async function handler(req, res) {
     } catch (error) {
         res.status(500).json({ error: "API 请求失败", details: error.message });
     }
-}
+};
