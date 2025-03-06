@@ -92,6 +92,7 @@
         <h2>批量查询 Elixir 领取资格</h2>
         <textarea id="wallets" rows="5" placeholder="请输入钱包地址，每行一个"></textarea>
         <button onclick="checkElixir()">查询</button>
+        <button onclick="downloadResults()">下载查询结果</button>
 
         <div class="stats">
             <p>🔍 查询账号总数：<span id="totalCount">0</span></p>
@@ -126,13 +127,14 @@
             tableBody.innerHTML = "";
             totalCountElem.innerText = walletAddresses.length;
             let eligibleCount = 0;
+            let results = [];
 
             for (let i = 0; i < walletAddresses.length; i++) {
                 let wallet = walletAddresses[i].trim();
                 if (!wallet) continue;
 
                 // 替换为你的 Vercel API 地址
-                const apiUrl = `https://elixir-proxy.vercel.app/api/proxy?address=${wallet}`;
+                const apiUrl = `https://monadshuju.vercel.app/api/proxy?address=${wallet}`;
 
                 console.log(`🔍 查询钱包：${wallet}`);
                 console.log(`📡 请求 URL: ${apiUrl}`);
@@ -159,6 +161,8 @@
                     row.insertCell(2).innerText = eligibility;
                     row.insertCell(3).innerText = tokenRange;
 
+                    results.push({编号: i + 1, 钱包地址: wallet, 资格: eligibility, 领取数量: tokenRange });
+
                 } catch (error) {
                     console.error(`❌ 查询失败 (${wallet}):`, error);
                     let row = tableBody.insertRow();
@@ -170,6 +174,27 @@
             }
 
             eligibleCountElem.innerText = eligibleCount;
+
+            // 保存查询结果到全局变量
+            window.queryResults = results;
+        }
+
+        function downloadResults() {
+            if (!window.queryResults || window.queryResults.length === 0) {
+                alert("请先进行查询！");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8," + 
+                "编号,钱包地址,资格,领取数量\n" + 
+                window.queryResults.map(e => `${e.编号},${e.钱包地址},${e.资格},${e.领取数量}`).join("\n");
+
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "elixir查询结果.csv");
+            document.body.appendChild(link);
+            link.click();
         }
     </script>
 
