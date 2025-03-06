@@ -121,26 +121,35 @@
             const tableBody = document.getElementById("resultTable").getElementsByTagName("tbody")[0];
             const totalCountElem = document.getElementById("totalCount");
             const eligibleCountElem = document.getElementById("eligibleCount");
-            tableBody.innerHTML = ""; // 清空表格
-            totalCountElem.innerText = walletAddresses.length; // 设置查询账号总数
-            let eligibleCount = 0; // 统计有资格领取的账号数
+
+            // 清空表格
+            tableBody.innerHTML = "";
+            totalCountElem.innerText = walletAddresses.length;
+            let eligibleCount = 0;
 
             for (let i = 0; i < walletAddresses.length; i++) {
                 let wallet = walletAddresses[i].trim();
                 if (!wallet) continue;
 
-                const apiUrl = `https://claim.elixir.xyz/backend/wallet/eligibility?address=${wallet}`;
+                // 替换为你的 Vercel API 地址
+                const apiUrl = `https://elixir-proxy.vercel.app/api/proxy?address=${wallet}`;
+
+                console.log(`🔍 查询钱包：${wallet}`);
+                console.log(`📡 请求 URL: ${apiUrl}`);
 
                 try {
                     const response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error(`HTTP 状态码: ${response.status}`);
+                    
                     const data = await response.json();
+                    console.log(`✅ 返回数据 (${wallet}):`, data);
 
                     let eligibility = data.eligibility ? "✅ 有" : "❌ 无";
                     let tokenRange = "N/A";
 
                     if (data.eligibility && data.tokenAmountRange) {
                         tokenRange = `${data.tokenAmountRange.amountStart} ~ ${data.tokenAmountRange.amountEnd}`;
-                        eligibleCount++; // 计数 +1
+                        eligibleCount++;
                     }
 
                     // 添加到表格
@@ -151,7 +160,7 @@
                     row.insertCell(3).innerText = tokenRange;
 
                 } catch (error) {
-                    console.error("查询失败:", wallet, error);
+                    console.error(`❌ 查询失败 (${wallet}):`, error);
                     let row = tableBody.insertRow();
                     row.insertCell(0).innerText = i + 1; // 编号
                     row.insertCell(1).innerText = wallet;
@@ -160,7 +169,7 @@
                 }
             }
 
-            eligibleCountElem.innerText = eligibleCount; // 更新有资格领取的账号数
+            eligibleCountElem.innerText = eligibleCount;
         }
     </script>
 
